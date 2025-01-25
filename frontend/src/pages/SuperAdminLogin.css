@@ -1,0 +1,48 @@
+.super-admin-login {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2rem;
+    background-color: #f8f8f8;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .super-admin-login h2 {
+    text-align: center;
+  }
+  
+  .super-admin-login form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .super-admin-login form div {
+    margin-bottom: 1rem;
+  }
+  
+  .super-admin-login form label {
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  
+  .super-admin-login form input {
+    padding: 0.5rem;
+    font-size: 1rem;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .super-admin-login form button {
+    padding: 0.75rem;
+    background-color: #333;
+    color: #fff;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .super-admin-login form button:hover {
+    background-color: #555;
+  }
+  

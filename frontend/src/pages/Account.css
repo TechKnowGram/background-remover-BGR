@@ -1,0 +1,105 @@
+/* General styles for layout */
+.account-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    display: flex;
+  }
+  
+  /* Sidebar Styling */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background-color: #1e1e1e;
+    color: white;
+    transition: width 0.3s ease;
+    overflow: hidden;
+    z-index: 100;
+  }
+  
+  .sidebar-open {
+    width: 250px;
+  }
+  
+  .account-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .menu-section {
+    padding: 10px 0;
+  }
+  
+  .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* Hamburger Menu Styling */
+  .hamburger {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 25px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 101;
+  }
+  
+  .bar {
+    width: 100%;
+    height: 3px;
+    background-color: black;
+  }
+  
+  /* Mobile-Only Styles */
+  @media screen and (max-width: 768px) {
+    .sidebar {
+      width: 0; /* Initially collapsed on mobile */
+    }
+  
+    .hamburger {
+      display: block; /* Only show hamburger on mobile */
+    }
+  
+    .account-title,
+    .user-info,
+    .menu-text {
+      display: block;
+    }
+  }
+  
+  /* For non-mobile devices, hide hamburger and keep sidebar static */
+  @media screen and (min-width: 769px) {
+    .hamburger {
+      display: none;
+    }
+  
+    .sidebar {
+      width: 250px; /* Full sidebar on desktop */
+      position: relative;
+    }
+  
+    .sidebar-open {
+      width: 250px;
+    }
+  }
+  

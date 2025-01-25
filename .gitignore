@@ -1,0 +1,46 @@
+# Dependency directories
+/frontend/node_modules/
+/frontend/npm-debug.log
+/frontend/yarn-error.log
+
+# Build files
+/frontend/build/
+/frontend/dist/
+
+# Environment variables
+/frontend/.env*
+
+# Editor directories and files
+/frontend/.vscode/
+/frontend/.idea/
+/frontend/*.suo
+/frontend/*.ntvs*
+
+# OS generated files
+/frontend/.DS_Store
+/frontend/Thumbs.db
+
+# Package lock files
+/frontend/package-lock.json
+/frontend/yarn.lock
+
+# Log files
+/frontend/logs/
+/frontend/*.log
+
+# IDE configuration
+/frontend/*.idea
+/frontend/*.iml
+
+# Generated files
+/frontend/*.log
+/frontend/*.gz
+
+# Other
+/frontend/.DS_Store
+/frontend/*.sublime-project
+/frontend/*.sublime-workspace
+/frontend/*.komodoproject
+/frontend/.komodotools
+
+frontend/build.zip

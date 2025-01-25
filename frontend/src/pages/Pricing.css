@@ -1,0 +1,155 @@
+body {
+    margin-top: 20px;
+    background: #DCDCDC;
+}
+
+.pricing-content {
+    position: relative;
+    padding: 40px 15px;
+}
+
+.pricing_design {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    /* Center aligns all cards */
+    gap: 20px;
+    /* Adds space between cards */
+    margin: 0;
+}
+
+.pricing_design .single-pricing {
+    background: #554c86;
+    padding: 60px 40px;
+    border-radius: 30px;
+    box-shadow: 0 10px 40px -10px rgba(0, 64, 128, .2);
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+    width: 100%;
+    /* Ensure cards are responsive */
+}
+
+.pricing_design .single-pricing:before {
+    content: "";
+    background-color: #fff;
+    width: 100%;
+    height: 100%;
+    border-radius: 18px 18px 190px 18px;
+    border: 1px solid #eee;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+}
+
+.price-head h2 {
+    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: 600;
+}
+
+.price-head h1 {
+    font-weight: 600;
+    margin-top: 30px;
+    margin-bottom: 5px;
+}
+
+.single-pricing ul {
+    list-style: none;
+    margin-top: 30px;
+    padding: 0;
+    width: 100%;
+    /* Ensure ul takes full width */
+}
+
+.single-pricing ul li {
+    line-height: 36px;
+    display: flex;
+    /* Align items in a row */
+    justify-content: space-between;
+    /* Space out items evenly */
+    align-items: center;
+    /* Align items vertically */
+    padding: 10px 0;
+    /* Add padding for better spacing */
+    width: 100%;
+    /* Ensure li items take full width */
+    border-bottom: 1px solid #eee;
+    /* Optional: Add separator for clarity */
+}
+
+.single-pricing ul li:last-child {
+    border-bottom: none;
+    /* Remove the bottom border for the last item */
+}
+
+.form-check {
+    width: 100%;
+    /* Ensure the form-check div spans full width */
+}
+
+.form-check p {
+    margin: 0;
+    /* Remove default margin for paragraph tags */
+    flex: 1;
+    /* Ensure text items share available space */
+    text-align: left;
+    /* Align text to the left */
+}
+
+.text-muted {
+    flex: 1;
+    text-align: center;
+    /* Align price in the center */
+}
+
+.text-primary {
+    flex: 1;
+    text-align: right;
+    /* Align rate to the right */
+}
+
+.form-check-input {
+    flex: 0 0 auto;
+    /* Prevent radio button from resizing */
+    margin-right: 10px;
+    /* Add spacing between radio button and text */
+}
+
+.price_btn {
+    background: #554c86;
+    padding: 10px 30px;
+    color: #fff;
+    display: inline-block;
+    margin-top: 20px;
+    border-radius: 2px;
+    -webkit-transition: 0.3s;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.price_btn:hover {
+    background: #554c86;
+    color: white;
+}
+
+@media (max-width: 992px) {
+    .pricing_design .single-pricing {
+        max-width: 500px;
+        /* Reduce card width for medium screens */
+    }
+}
+
+@media (max-width: 576px) {
+    .pricing_design {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pricing_design .single-pricing {
+        max-width: 100%;
+        padding: 40px 20px;
+        /* Adjust padding for smaller screens */
+    }
+}

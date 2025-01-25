@@ -1,0 +1,82 @@
+.footer {
+    width: 100%;
+    background-color: #1a1a1a;
+    color: #fff;
+}
+
+.topFooter {
+    padding: 20px 0;
+}
+
+.bottomFooter {
+    background-image: url("../static/images/footer-curb-bg.svg");
+    background-size: cover;
+    /* Ensures the image covers the entire section */
+    background-position: center;
+    /* Centers the image */
+    background-repeat: no-repeat;
+    /* Prevents the image from repeating */
+    padding: 20px 0;
+    /* Adds padding for content spacing */
+    color: #ccc;
+    /* Keeps text readable */
+}
+
+.footerLinks li {
+    list-style: none;
+}
+
+.footerLinks li a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.footerLinks li a:hover {
+    color: #fff;
+}
+
+.social a {
+    margin-right: 10px;
+    color: #ccc;
+    font-size: 20px;
+}
+
+.social a:hover {
+    color: #fff;
+}
+
+.terms {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.terms li {
+    margin-left: 20px;
+}
+
+.terms li a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.terms li a:hover {
+    color: #fff;
+}
+
+.copyright-section {
+    background-color: #000;
+    text-align: center;
+    padding: 10px 0;
+    color: #aaa;
+}
+
+.copyright-section a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.copyright-section a:hover {
+    color: #fff;
+}
