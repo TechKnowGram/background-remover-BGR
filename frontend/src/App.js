@@ -53,6 +53,7 @@ import './App.css';
 import '../node_modules/font-awesome/css/font-awesome.css';
 import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Personal from './pages/upload/personal';
 
 
 
@@ -72,6 +73,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/upload" element={<UploadForm />} />
+            <Route path="/upload-personal" element={<Personal />} />
             <Route path="/tools-api" element={<Toolsapi />} />
             <Route path="/unlimited-cutouts" element={<Unlimitedcutouts />} />
             <Route path="/signup" element={<Signup />} />
