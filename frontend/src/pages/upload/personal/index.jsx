@@ -18,69 +18,33 @@ import {
   ThumbnailImage,
   UploadLimitMessage,
 } from "./EditorStyles";
-
-const MAX_UPLOADS = 10; // Maximum number of images allowed
+import {
+  getColorOptions,
+  getRemainingUploadsText,
+  isUploadLimitReached,
+  handleUploadClick,
+  handleFileChange,
+  handleThumbnailClick,
+  handleChangeBackground,
+} from "./EditorUtils";
 
 const ImageEditor = () => {
-  const [selectedColor, setSelectedColor] = useState("#000");
-  const [uploadedImages, setUploadedImages] = useState([]);
-  const [activeImageIndex, setActiveImageIndex] = useState(null);
-  const [uploadLimitReached, setUploadLimitReached] = useState(false);
-  const fileInputRef = useRef(null);
+  // =====================
+  // State Management
+  // =====================
 
-  const colors = [
-    "transparent",
-    "#000000",
-    "#808080",
-    "#00bfff",
-    "#ff0000",
-    "#ffc0cb",
-    "#ffff00",
-    "#ffa500",
-    "#90ee90",
-    "#800080",
-  ];
+  const [selectedColor, setSelectedColor] = useState("#000"); // Stores the selected background color
+  const [uploadedImages, setUploadedImages] = useState([]); // Stores uploaded images
+  const [activeImageIndex, setActiveImageIndex] = useState(null); // Tracks the currently active image
+  const [errorMessage, setErrorMessage] = useState(""); // Stores error messages
+  const [processedImageUrl, setProcessedImageUrl] = useState(null); // Stores the processed image URL from the backend
+  const fileInputRef = useRef(null); // Reference to the hidden file input
 
-  const handleUploadClick = () => {
-    if (uploadedImages.length >= MAX_UPLOADS) {
-      setUploadLimitReached(true);
-      setTimeout(() => setUploadLimitReached(false), 3000); // Hide message after 3 seconds
-      return;
-    }
-    fileInputRef.current.click();
-  };
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file && uploadedImages.length < MAX_UPLOADS) {
-      const imageUrl = URL.createObjectURL(file);
-      const newUploadedImages = [
-        ...uploadedImages,
-        {
-          url: imageUrl,
-          name: file.name,
-        },
-      ];
-      setUploadedImages(newUploadedImages);
-      setActiveImageIndex(newUploadedImages.length - 1);
-    }
-    // Reset file input to allow selecting the same file again
-    event.target.value = "";
-  };
-
-  const handleThumbnailClick = (index) => {
-    setActiveImageIndex(index);
-  };
-
-  const getRemainingUploadsText = () => {
-    const remaining = MAX_UPLOADS - uploadedImages.length;
-    return remaining === 1
-      ? "1 upload remaining"
-      : `${remaining} uploads remaining`;
-  };
+  const colors = getColorOptions(); // Fetch color options
 
   return (
     <EditorContainer>
+      {/* Navigation Path */}
       <NavigationPath>
         <span>Home</span>
         <span>Background Remover</span>
@@ -89,13 +53,21 @@ const ImageEditor = () => {
 
       <EditorLayout>
         <div>
+          {/* Toolbar */}
           <Toolbar>
             <ToolButton>✏️</ToolButton>
             <ToolButton>✖️</ToolButton>
           </Toolbar>
 
+          {/* Image Preview Section */}
           <ImagePreview>
-            {activeImageIndex !== null && uploadedImages.length > 0 ? (
+            {processedImageUrl ? (
+              <img
+                src={processedImageUrl}
+                alt="Processed Image"
+                style={{ maxWidth: "100%", maxHeight: "450px" }}
+              />
+            ) : activeImageIndex !== null && uploadedImages.length > 0 ? (
               <img
                 src={uploadedImages[activeImageIndex].url}
                 alt={`Preview of ${uploadedImages[activeImageIndex].name}`}
@@ -106,6 +78,7 @@ const ImageEditor = () => {
             )}
           </ImagePreview>
 
+          {/* Thumbnails Section */}
           {uploadedImages.length > 0 && (
             <ThumbnailsContainer>
               {uploadedImages.map((image, index) => (
@@ -114,12 +87,15 @@ const ImageEditor = () => {
                   src={image.url}
                   alt={`Thumbnail of ${image.name}`}
                   active={index === activeImageIndex}
-                  onClick={() => handleThumbnailClick(index)}
+                  onClick={() =>
+                    handleThumbnailClick(index, setActiveImageIndex)
+                  }
                 />
               ))}
             </ThumbnailsContainer>
           )}
 
+          {/* Color Palette Selection */}
           <ColorPalette>
             {colors.map((color) => (
               <ColorButton
@@ -132,38 +108,68 @@ const ImageEditor = () => {
           </ColorPalette>
         </div>
 
+        {/* Side Panel - Actions & Uploads */}
         <SidePanel>
-          <ActionButton>🖼️ Change Background</ActionButton>
+          {/* Change Background Button */}
+          <ActionButton
+            onClick={() =>
+              handleChangeBackground(
+                uploadedImages,
+                activeImageIndex,
+                selectedColor,
+                setProcessedImageUrl, // ✅ Updates processed image
+                setErrorMessage
+              )
+            }
+          >
+            🖼️ Change Background
+          </ActionButton>
+
+          {/* Other Background Options */}
           <ActionButton>🤖 AI Background</ActionButton>
           <ActionButton>🌫️ Blur Background</ActionButton>
 
+          {/* Download Buttons */}
           <ActionButton primary>⬇️ Download HD</ActionButton>
           <ImageDetails>HD Image · 1080 x 1080 px</ImageDetails>
 
           <ActionButton>⬇️ Download Preview</ActionButton>
           <ImageDetails>Preview Image · 500 x 500 px</ImageDetails>
 
+          {/* Upload Button */}
           <UploadButton
-            onClick={handleUploadClick}
-            disabled={uploadedImages.length >= MAX_UPLOADS}
+            onClick={() =>
+              handleUploadClick(uploadedImages, setErrorMessage, fileInputRef)
+            }
+            disabled={isUploadLimitReached(uploadedImages.length)}
           >
             <UploadButtonText>+</UploadButtonText>
             Upload Image
-            {uploadedImages.length < MAX_UPLOADS && (
+            {!isUploadLimitReached(uploadedImages.length) && (
               <span style={{ fontSize: "0.8em", marginLeft: "5px" }}>
-                ({getRemainingUploadsText()})
+                ({getRemainingUploadsText(uploadedImages.length)})
               </span>
             )}
           </UploadButton>
-          {uploadLimitReached && (
-            <UploadLimitMessage>
-              Maximum upload limit reached ({MAX_UPLOADS})
-            </UploadLimitMessage>
+
+          {/* Error Message for Upload Limit */}
+          {errorMessage && (
+            <UploadLimitMessage>{errorMessage}</UploadLimitMessage>
           )}
+
+          {/* Hidden File Input */}
           <HiddenFileInput
             type="file"
             ref={fileInputRef}
-            onChange={handleFileChange}
+            onChange={(event) =>
+              handleFileChange(
+                event,
+                uploadedImages,
+                setUploadedImages,
+                setActiveImageIndex,
+                setErrorMessage
+              )
+            }
             accept="image/*"
           />
         </SidePanel>
