@@ -141,7 +141,7 @@ export const handleThumbnailClick = (index, setActiveImageIndex) => {
 // API Call - Change Background
 // =====================
 
-// Sends the selected image and color to the backend, updates the processed image preview
+// Sends the selected image file and color to the backend, updates the processed image preview
 export const handleChangeBackground = async (
   uploadedImages,
   activeImageIndex,
@@ -158,11 +158,18 @@ export const handleChangeBackground = async (
   const image = uploadedImages[activeImageIndex];
 
   try {
+    // Create FormData to send the file
+    const formData = new FormData();
+    formData.append("image", image.file); // Send actual file
+    formData.append("color", selectedColor); // Send selected background color
+
     const response = await axios.post(
       "https://your-backend-url.com/api/change-background",
+      formData,
       {
-        imageUrl: image.url,
-        color: selectedColor,
+        headers: {
+          "Content-Type": "multipart/form-data", // Required for file uploads
+        },
       }
     );
 
