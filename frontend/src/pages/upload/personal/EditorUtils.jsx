@@ -1,17 +1,30 @@
 import axios from "axios";
 
+/**
+ * Base URL for API endpoints
+ * Retrieved from environment variables
+ */
+const backendUrl = process.env.REACT_APP_BASE_URL;
+
 // =====================
 // Constants
 // =====================
 
-// Maximum number of images a user can upload
+/**
+ * Maximum number of images a user can upload
+ * Used to enforce upload limits in the UI
+ */
 export const MAX_UPLOADS = 5;
 
 // =====================
 // Helper Functions
 // =====================
 
-// Returns an array of color options for background selection
+/**
+ * Returns an array of color options for background selection
+ * Includes transparent option and a range of colors
+ * @returns {Array} Array of color hex codes
+ */
 export const getColorOptions = () => [
   "transparent",
   "#000000",
@@ -25,7 +38,11 @@ export const getColorOptions = () => [
   "#800080",
 ];
 
-// Returns the number of uploads remaining
+/**
+ * Returns the number of uploads remaining as a formatted string
+ * @param {number} uploadedImagesCount - Current number of uploaded images
+ * @returns {string} Text indicating remaining uploads
+ */
 export const getRemainingUploadsText = (uploadedImagesCount) => {
   const remaining = MAX_UPLOADS - uploadedImagesCount;
   return remaining === 1
@@ -33,12 +50,21 @@ export const getRemainingUploadsText = (uploadedImagesCount) => {
     : `${remaining} uploads remaining`;
 };
 
-// Checks if the upload limit has been reached
+/**
+ * Checks if the upload limit has been reached
+ * @param {number} uploadedImagesCount - Current number of uploaded images
+ * @returns {boolean} True if the limit is reached, false otherwise
+ */
 export const isUploadLimitReached = (uploadedImagesCount) => {
   return uploadedImagesCount >= MAX_UPLOADS;
 };
 
-// Creates an image object from a selected file
+/**
+ * Creates an image object from a selected file
+ * Generates a temporary URL for preview
+ * @param {File} file - The file object from the file input
+ * @returns {Object|null} Image object with metadata or null if no file
+ */
 export const createImageObject = (file) => {
   if (!file) return null;
 
@@ -48,10 +74,15 @@ export const createImageObject = (file) => {
     type: file.type,
     size: file.size,
     lastModified: file.lastModified,
+    file: file, // Add the actual file object here
   };
 };
 
-// Validates an image file (type & size constraints)
+/**
+ * Validates an image file based on type and size constraints
+ * @param {File} file - The file to validate
+ * @returns {Object} Validation result with valid flag and error message
+ */
 export const validateImageFile = (file) => {
   if (!file.type.startsWith("image/")) {
     return { valid: false, message: "Only image files are allowed" };
@@ -69,32 +100,46 @@ export const validateImageFile = (file) => {
 // Event Handlers
 // =====================
 
-// Handles the upload button click event
+/**
+ * Handles the upload button click event
+ * Triggers the hidden file input click or shows error if limit reached
+ * @param {Array} uploadedImages - Currently uploaded images
+ * @param {Function} setErrorMessage - State setter for error messages
+ * @param {Object} fileInputRef - React ref to the file input element
+ */
 export const handleUploadClick = (
   uploadedImages,
-  setUploadLimitReached,
   setErrorMessage,
   fileInputRef
 ) => {
-  if (isUploadLimitReached(uploadedImages.length)) {
-    setUploadLimitReached(true);
-    setErrorMessage(`Maximum upload limit reached (${MAX_UPLOADS})`);
-    setTimeout(() => {
-      setUploadLimitReached(false);
-      setErrorMessage("");
-    }, 3000);
+  if (!fileInputRef || !fileInputRef.current) {
+    setErrorMessage("File input is not available.");
     return;
   }
+
+  if (isUploadLimitReached(uploadedImages.length)) {
+    setErrorMessage(`Maximum upload limit reached (${MAX_UPLOADS})`);
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+
   fileInputRef.current.click();
 };
 
-// Handles the file input change event when a user selects an image
+/**
+ * Handles the file input change event when a user selects an image
+ * Validates, creates image object, and updates state
+ * @param {Event} event - The file input change event
+ * @param {Array} uploadedImages - Currently uploaded images
+ * @param {Function} setUploadedImages - State setter for uploaded images
+ * @param {Function} setActiveImageIndex - State setter for active image index
+ * @param {Function} setErrorMessage - State setter for error messages
+ */
 export const handleFileChange = (
   event,
   uploadedImages,
   setUploadedImages,
   setActiveImageIndex,
-  setUploadLimitReached,
   setErrorMessage
 ) => {
   const file = event.target.files[0];
@@ -111,10 +156,8 @@ export const handleFileChange = (
 
   // Check if the upload limit is reached
   if (isUploadLimitReached(uploadedImages.length)) {
-    setUploadLimitReached(true);
     setErrorMessage(`Maximum upload limit reached (${MAX_UPLOADS})`);
     setTimeout(() => {
-      setUploadLimitReached(false);
       setErrorMessage("");
     }, 3000);
     return;
@@ -132,7 +175,12 @@ export const handleFileChange = (
   event.target.value = "";
 };
 
-// Handles thumbnail selection
+/**
+ * Handles thumbnail selection
+ * Sets the active image index when a thumbnail is clicked
+ * @param {number} index - Index of the clicked thumbnail
+ * @param {Function} setActiveImageIndex - State setter for active image index
+ */
 export const handleThumbnailClick = (index, setActiveImageIndex) => {
   setActiveImageIndex(index);
 };
@@ -141,7 +189,16 @@ export const handleThumbnailClick = (index, setActiveImageIndex) => {
 // API Call - Change Background
 // =====================
 
-// Sends the selected image file and color to the backend, updates the processed image preview
+/**
+ * Sends the selected image file to the backend for processing
+ * Updates the processed image preview with result
+ * @param {Array} uploadedImages - Currently uploaded images
+ * @param {number} activeImageIndex - Index of currently active image
+ * @param {string} selectedColor - Selected background color hex code
+ * @param {Function} setProcessedImageUrl - State setter for processed image URL
+ * @param {Function} setErrorMessage - State setter for error messages
+ * @returns {Promise<void>}
+ */
 export const handleChangeBackground = async (
   uploadedImages,
   activeImageIndex,
@@ -160,26 +217,89 @@ export const handleChangeBackground = async (
   try {
     // Create FormData to send the file
     const formData = new FormData();
-    formData.append("image", image.file); // Send actual file
-    formData.append("color", selectedColor); // Send selected background color
+    formData.append("files[]", image.file); // Send actual file
+    // formData.append("color", selectedColor); // Send selected background color
 
-    const response = await axios.post(
-      "https://your-backend-url.com/api/change-background",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data", // Required for file uploads
-        },
-      }
-    );
+    const response = await axios.post(`${backendUrl}/process`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Required for file uploads
+      },
+    });
 
-    if (response.data.newImageUrl) {
-      setProcessedImageUrl(response.data.newImageUrl); // Update the processed image preview
+    if (response.data.processed_images[0]) {
+      setProcessedImageUrl(
+        `${backendUrl}/static/processed/${response.data.processed_images[0]}`
+      ); // Update the processed image preview
     } else {
       throw new Error(response.data.message || "Failed to change background");
     }
   } catch (error) {
     setErrorMessage(error.response?.data?.message || "Something went wrong");
+    setTimeout(() => setErrorMessage(""), 3000);
+  }
+};
+
+/**
+ * Handles downloading the current image (either processed or original)
+ * Creates a temporary download link and triggers download
+ * @param {Array} uploadedImages - Currently uploaded images
+ * @param {number} activeImageIndex - Index of currently active image
+ * @param {string} processedImageUrl - URL of processed image if available
+ * @param {Function} setErrorMessage - State setter for error messages
+ * @returns {Promise<void>}
+ */
+export const handleDownloadImage = async (
+  uploadedImages,
+  activeImageIndex,
+  processedImageUrl,
+  setErrorMessage
+) => {
+  let downloadUrl;
+  let fileName;
+  let isRemoteUrl = false;
+
+  // Determine which image to download
+  if (processedImageUrl) {
+    // If there's a processed image from backend
+    downloadUrl = processedImageUrl;
+    fileName = "processed-image.jpg";
+    isRemoteUrl = true;
+  } else if (activeImageIndex !== null && uploadedImages.length > 0) {
+    // Otherwise download the selected uploaded image
+    downloadUrl = uploadedImages[activeImageIndex].url;
+    fileName = uploadedImages[activeImageIndex].name;
+  } else {
+    // No image to download
+    setErrorMessage("No image available to download");
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+
+  try {
+    if (isRemoteUrl) {
+      // For remote URLs (processed images from the backend), fetch the image first
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Failed to fetch the image");
+
+      const blob = await response.blob();
+      downloadUrl = URL.createObjectURL(blob);
+    }
+
+    // Create an anchor element and trigger download
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    // Clean up the object URL if we created one
+    if (isRemoteUrl) {
+      URL.revokeObjectURL(downloadUrl);
+    }
+  } catch (error) {
+    console.error("Download failed:", error);
+    setErrorMessage("Failed to download the image");
     setTimeout(() => setErrorMessage(""), 3000);
   }
 };

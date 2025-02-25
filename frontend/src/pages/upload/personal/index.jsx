@@ -26,25 +26,88 @@ import {
   handleFileChange,
   handleThumbnailClick,
   handleChangeBackground,
+  handleDownloadImage,
 } from "./EditorUtils";
 
+/**
+ * Main ImageEditor component
+ * Provides UI for uploading, selecting, and processing images with background removal
+ */
 const ImageEditor = () => {
   // =====================
   // State Management
   // =====================
 
-  const [selectedColor, setSelectedColor] = useState("#000"); // Stores the selected background color
-  const [uploadedImages, setUploadedImages] = useState([]); // Stores uploaded images
-  const [activeImageIndex, setActiveImageIndex] = useState(null); // Tracks the currently active image
-  const [errorMessage, setErrorMessage] = useState(""); // Stores error messages
-  const [processedImageUrl, setProcessedImageUrl] = useState(null); // Stores the processed image URL from the backend
-  const fileInputRef = useRef(null); // Reference to the hidden file input
+  /**
+   * State for the currently selected background color
+   * Default is black (#000)
+   */
+  const [selectedColor, setSelectedColor] = useState("#000");
 
-  const colors = getColorOptions(); // Fetch color options
+  /**
+   * State for storing all uploaded images
+   * Each image is an object with url, name, type, size, etc.
+   */
+  const [uploadedImages, setUploadedImages] = useState([]);
+
+  /**
+   * State for tracking the index of the currently active/selected image
+   * Null when no image is selected
+   */
+  const [activeImageIndex, setActiveImageIndex] = useState(null);
+
+  /**
+   * State for storing error messages to display to the user
+   * Empty string when no errors
+   */
+  const [errorMessage, setErrorMessage] = useState("");
+
+  /**
+   * State for storing the URL of the processed image from the backend
+   * Null when no processed image is available
+   */
+  const [processedImageUrl, setProcessedImageUrl] = useState(null);
+
+  /**
+   * State for tracking whether an image download is in progress
+   * Used to prevent multiple simultaneous downloads
+   */
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  /**
+   * Reference to the hidden file input element
+   * Used to programmatically trigger file selection dialog
+   */
+  const fileInputRef = useRef(null);
+
+  /**
+   * Get the available color options for background selection
+   */
+  const colors = getColorOptions();
+
+  /**
+   * Handle download button click
+   * Sets loading state and calls the download handler
+   */
+  const onDownloadClick = async () => {
+    if (isDownloading) return; // Prevent multiple clicks
+
+    setIsDownloading(true);
+    try {
+      await handleDownloadImage(
+        uploadedImages,
+        activeImageIndex,
+        processedImageUrl,
+        setErrorMessage
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   return (
     <EditorContainer>
-      {/* Navigation Path */}
+      {/* Navigation Path - Breadcrumb navigation */}
       <NavigationPath>
         <span>Home</span>
         <span>Background Remover</span>
@@ -53,13 +116,13 @@ const ImageEditor = () => {
 
       <EditorLayout>
         <div>
-          {/* Toolbar */}
+          {/* Toolbar - Container for editing tools */}
           <Toolbar>
             <ToolButton>✏️</ToolButton>
             <ToolButton>✖️</ToolButton>
           </Toolbar>
 
-          {/* Image Preview Section */}
+          {/* Image Preview Section - Shows currently selected or processed image */}
           <ImagePreview>
             {processedImageUrl ? (
               <img
@@ -78,7 +141,7 @@ const ImageEditor = () => {
             )}
           </ImagePreview>
 
-          {/* Thumbnails Section */}
+          {/* Thumbnails Section - Shows all uploaded images as thumbnails */}
           {uploadedImages.length > 0 && (
             <ThumbnailsContainer>
               {uploadedImages.map((image, index) => (
@@ -87,15 +150,16 @@ const ImageEditor = () => {
                   src={image.url}
                   alt={`Thumbnail of ${image.name}`}
                   active={index === activeImageIndex}
-                  onClick={() =>
-                    handleThumbnailClick(index, setActiveImageIndex)
-                  }
+                  onClick={() => {
+                    handleThumbnailClick(index, setActiveImageIndex);
+                    setProcessedImageUrl(null); // Clear processed image when switching thumbnails
+                  }}
                 />
               ))}
             </ThumbnailsContainer>
           )}
 
-          {/* Color Palette Selection */}
+          {/* Color Palette Selection - Available background colors */}
           <ColorPalette>
             {colors.map((color) => (
               <ColorButton
@@ -110,33 +174,47 @@ const ImageEditor = () => {
 
         {/* Side Panel - Actions & Uploads */}
         <SidePanel>
-          {/* Change Background Button */}
+          {/* Change Background Button - Primary action */}
           <ActionButton
+            primary
             onClick={() =>
               handleChangeBackground(
                 uploadedImages,
                 activeImageIndex,
                 selectedColor,
-                setProcessedImageUrl, // ✅ Updates processed image
+                setProcessedImageUrl,
                 setErrorMessage
               )
             }
+            disabled={activeImageIndex === null || uploadedImages.length === 0}
           >
             🖼️ Change Background
           </ActionButton>
 
-          {/* Other Background Options */}
-          <ActionButton>🤖 AI Background</ActionButton>
-          <ActionButton>🌫️ Blur Background</ActionButton>
+          {/* Download Button - Export the current or processed image */}
+          <ActionButton
+            onClick={onDownloadClick}
+            disabled={
+              isDownloading ||
+              !(
+                processedImageUrl ||
+                (activeImageIndex !== null && uploadedImages.length > 0)
+              )
+            }
+          >
+            {isDownloading ? "⏳ Downloading..." : "⬇️ Download Image"}
+          </ActionButton>
 
-          {/* Download Buttons */}
-          <ActionButton primary>⬇️ Download HD</ActionButton>
-          <ImageDetails>HD Image · 1080 x 1080 px</ImageDetails>
+          {/* Image Details - Shows information about the current image */}
+          <ImageDetails>
+            {processedImageUrl
+              ? "Processed Image"
+              : activeImageIndex !== null && uploadedImages.length > 0
+              ? `${uploadedImages[activeImageIndex].name}`
+              : "No image selected"}
+          </ImageDetails>
 
-          <ActionButton>⬇️ Download Preview</ActionButton>
-          <ImageDetails>Preview Image · 500 x 500 px</ImageDetails>
-
-          {/* Upload Button */}
+          {/* Upload Button - Triggers file selection dialog */}
           <UploadButton
             onClick={() =>
               handleUploadClick(uploadedImages, setErrorMessage, fileInputRef)
@@ -152,12 +230,12 @@ const ImageEditor = () => {
             )}
           </UploadButton>
 
-          {/* Error Message for Upload Limit */}
+          {/* Error Message - Displays validation errors or API errors */}
           {errorMessage && (
             <UploadLimitMessage>{errorMessage}</UploadLimitMessage>
           )}
 
-          {/* Hidden File Input */}
+          {/* Hidden File Input - Triggered by the Upload Button */}
           <HiddenFileInput
             type="file"
             ref={fileInputRef}

@@ -273,7 +273,7 @@ const Header = () => {
           <NavItem ref={submenuRef} className="d-flex align-items-center">
             <NavLink as="span" style={navLinks} onClick={toggleUseCases}>Use cases</NavLink>
             <UseCasesMenu isOpen={isUseCasesOpen}>
-              <UseCaseItem to="/personal-use">
+              <UseCaseItem to="/upload-personal">
                 <img src="static/images/icon-personal.svg" alt="Personal use" />
                 <span>for Personal</span>
               </UseCaseItem>
