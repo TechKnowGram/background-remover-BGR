@@ -303,3 +303,71 @@ export const handleDownloadImage = async (
     setTimeout(() => setErrorMessage(""), 3000);
   }
 };
+
+/**
+ * Sends all uploaded images to the backend for processing and downloading
+ * Backend will combine them and initiate a single file download
+ * @param {Array} uploadedImages - All currently uploaded images
+ * @param {Function} setErrorMessage - State setter for error messages
+ * @param {Function} setIsBulkDownloading - State setter for tracking bulk download progress
+ * @returns {Promise<void>}
+ */
+export const handleBulkDownload = async (
+  uploadedImages,
+  setErrorMessage,
+  setIsBulkDownloading
+) => {
+  if (!uploadedImages || uploadedImages.length === 0) {
+    setErrorMessage("No images available for bulk download");
+    setTimeout(() => setErrorMessage(""), 3000);
+    return;
+  }
+
+  try {
+    // Create FormData to send all files
+    const formData = new FormData();
+
+    // Append all image files to the FormData
+    uploadedImages.forEach((image, index) => {
+      formData.append(`files[${index}]`, image.file);
+    });
+
+    const response = await axios({
+      method: "post",
+      url: `${backendUrl}/bulk-download`,
+      data: formData,
+      responseType: "blob", // Important: we want a binary response
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    // Create a download link for the returned file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+
+    // Get the filename from the response headers if available
+    const contentDisposition = response.headers["content-disposition"];
+    let filename = "all-images.zip";
+
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (filenameMatch && filenameMatch.length > 1) {
+        filename = filenameMatch[1];
+      }
+    }
+
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Bulk download failed:", error);
+    setErrorMessage(
+      error.response?.data?.message || "Failed to download files"
+    );
+    setTimeout(() => setErrorMessage(""), 3000);
+  }
+};

@@ -27,6 +27,7 @@ import {
   handleThumbnailClick,
   handleChangeBackground,
   handleDownloadImage,
+  handleBulkDownload, // Import the new bulk download function
 } from "./EditorUtils";
 
 /**
@@ -75,6 +76,12 @@ const ImageEditor = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   /**
+   * State for tracking whether a bulk download is in progress
+   * Used to prevent multiple simultaneous bulk downloads
+   */
+  const [isBulkDownloading, setIsBulkDownloading] = useState(false);
+
+  /**
    * Reference to the hidden file input element
    * Used to programmatically trigger file selection dialog
    */
@@ -102,6 +109,25 @@ const ImageEditor = () => {
       );
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  /**
+   * Handle bulk download button click
+   * Sets loading state and calls the bulk download handler
+   */
+  const onBulkDownloadClick = async () => {
+    if (isBulkDownloading) return; // Prevent multiple clicks
+
+    setIsBulkDownloading(true);
+    try {
+      await handleBulkDownload(
+        uploadedImages,
+        setErrorMessage,
+        setIsBulkDownloading
+      );
+    } finally {
+      setIsBulkDownloading(false);
     }
   };
 
@@ -203,6 +229,16 @@ const ImageEditor = () => {
             }
           >
             {isDownloading ? "⏳ Downloading..." : "⬇️ Download Image"}
+          </ActionButton>
+
+          {/* Bulk Download Button - Send all images to backend and initiate download */}
+          <ActionButton
+            onClick={onBulkDownloadClick}
+            disabled={isBulkDownloading || uploadedImages.length === 0}
+          >
+            {isBulkDownloading
+              ? "⏳ Preparing Archive..."
+              : "📦 Download All Images"}
           </ActionButton>
 
           {/* Image Details - Shows information about the current image */}
