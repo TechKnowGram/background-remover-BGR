@@ -332,6 +332,8 @@ export const handleBulkDownload = async (
       formData.append(`files[${index}]`, image.file);
     });
 
+    console.log("Sending bulk download request...");
+
     const response = await axios({
       method: "post",
       url: `${backendUrl}/bulk-download`,
@@ -342,6 +344,18 @@ export const handleBulkDownload = async (
       },
     });
 
+    console.log("Received response:", response);
+
+    // Check if the response contains an error message (sometimes blob responses can contain JSON errors)
+    if (response.data.type && response.data.type.includes("json")) {
+      // Convert blob to JSON to check for error messages
+      const jsonResponse = JSON.parse(await response.data.text());
+      console.log("JSON response:", jsonResponse);
+      if (jsonResponse.message) {
+        throw new Error(jsonResponse.message);
+      }
+    }
+
     // Create a download link for the returned file
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
@@ -351,6 +365,8 @@ export const handleBulkDownload = async (
     const contentDisposition = response.headers["content-disposition"];
     let filename = "all-images.zip";
 
+    console.log("Content-Disposition header:", contentDisposition);
+
     if (contentDisposition) {
       const filenameMatch = contentDisposition.match(/filename="(.+)"/);
       if (filenameMatch && filenameMatch.length > 1) {
@@ -358,16 +374,40 @@ export const handleBulkDownload = async (
       }
     }
 
+    console.log("Using filename:", filename);
+
     link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+
+    console.log("Download initiated successfully");
   } catch (error) {
     console.error("Bulk download failed:", error);
-    setErrorMessage(
-      error.response?.data?.message || "Failed to download files"
-    );
+    if (error.response) {
+      console.error("Response status:", error.response.status);
+      console.error("Response headers:", error.response.headers);
+      // Try to read the error response as text
+      if (error.response.data instanceof Blob) {
+        const text = await error.response.data.text();
+        console.error("Response data:", text);
+        try {
+          const json = JSON.parse(text);
+          setErrorMessage(json.message || "Failed to download files");
+        } catch {
+          setErrorMessage(
+            "Failed to download files: " + text.substring(0, 100)
+          );
+        }
+      } else {
+        setErrorMessage(
+          error.response.data?.message || "Failed to download files"
+        );
+      }
+    } else {
+      setErrorMessage(error.message || "Failed to download files");
+    }
     setTimeout(() => setErrorMessage(""), 3000);
   }
 };
